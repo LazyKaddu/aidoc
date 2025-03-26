@@ -9,10 +9,12 @@ function App() {
   const [diagnosis, setDiagnosis] = useState(null)
   const [Witty, setWitty] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [showDiagnosis, setShowDiagnosis] = useState(false)
   const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-  const API_KEY = "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"
+  const API_KEY = "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"
   const getCreative = () => {
     setIsLoading(true)
+    setShowDiagnosis(false)
     axios.post(
       API_URL,
       {
@@ -50,20 +52,29 @@ Important Notes:
 userSymptoms = ${search}`
         }]
       },
-      { headers: { Authorization: `Bearer ${API_KEY}` } }
+      { 
+        headers: { 
+          "Authorization": `Bearer ${API_KEY}`,
+          "HTTP-Referer": "http://localhost:5173",
+          "X-Title": "AI Doctor"
+        } 
+      }
     ).then((e) => {
       console.log(e.data.choices[0].message.content)
-      setWitty(JSON.parse(e.data.choices[0].message.content))
-      console.log(Witty)
-      console.log(Witty)
-      // Display the results in the UI instead of redirecting to Google
-      setDiagnosis(Witty)
+      const parsedResponse = JSON.parse(e.data.choices[0].message.content)
+      setWitty(parsedResponse)
+      setDiagnosis(parsedResponse)
     }).catch((e) => {
       alert(e)
     }).finally(() => {
       setIsLoading(false)
     })
   }
+
+  const handleShowDiagnosis = () => {
+    setShowDiagnosis(true)
+  }
+
   return (
     <div className="bg-gray-900 min-h-screen">
       {/* Navigation Bar */}
@@ -137,7 +148,21 @@ userSymptoms = ${search}`
           </button>
         </div>
 
-        {diagnosis && (
+        {diagnosis && !showDiagnosis && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={handleShowDiagnosis}
+              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Show Diagnosis
+            </button>
+          </div>
+        )}
+
+        {diagnosis && showDiagnosis && (
           <div className="mt-4 p-4 border rounded bg-gray-800 border-gray-700">
             <h2 className="text-xl font-bold mb-2 text-white">Possible Conditions:</h2>
             <ul className="list-disc pl-5 text-gray-300">
